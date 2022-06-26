@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 
 public class NoSuchShopUnitException extends AbstractShopUnitException {
 
-    public NoSuchShopUnitException(String message, HttpStatus httpStatus) {
-        super(message, httpStatus);
+    public NoSuchShopUnitException(String message) {
+        super(message, HttpStatus.NOT_FOUND);
     }
 
 }

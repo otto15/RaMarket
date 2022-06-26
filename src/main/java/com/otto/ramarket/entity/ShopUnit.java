@@ -1,17 +1,24 @@
 package com.otto.ramarket.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -29,28 +36,34 @@ public class ShopUnit {
     private ShopUnitType type;
 
     @Column(name = "date", nullable = false)
-    private ZonedDateTime date;
+    private Instant date;
 
-    @ManyToOne(cascade = {CascadeType.REMOVE})
+    @JsonIgnore
+    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private ShopUnit parent;
 
-    @Column(name = "price")
-    private Long price;
+    @Column(name = "parent_id", updatable = false, insertable = false)
+    private UUID parentId;
 
-    @OneToMany(mappedBy = "parent")
-    private List<ShopUnit> children;
+    @Column(name = "price")
+    private Integer price;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private Set<ShopUnit> children = new HashSet<>();
+
+    @OneToMany(mappedBy = "shopUnit", cascade = CascadeType.ALL)
+    private List<ShopUnitUpdate> updates;
 
     public ShopUnit() {
 
     }
 
-    public ShopUnit(UUID id, String name, ShopUnitType type, ZonedDateTime date, ShopUnit parent, Long price) {
+    public ShopUnit(UUID id, String name, ShopUnitType type, Instant date, Integer price) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.date = date;
-        this.parent = parent;
         this.price = price;
     }
 
@@ -78,11 +91,17 @@ public class ShopUnit {
         this.type = type;
     }
 
-    public ZonedDateTime getDate() {
+    public Instant getDate() {
         return date;
     }
 
-    public void setDate(ZonedDateTime date) {
+    public void setDate(Instant date) {
+        if (this.date != null && date.compareTo(this.date) < 0) {
+            return;
+        }
+        if (this.parentId != null) {
+            this.parent.setDate(date);
+        }
         this.date = date;
     }
 
@@ -94,20 +113,53 @@ public class ShopUnit {
         this.parent = parent;
     }
 
-    public Long getPrice() {
+    public Integer getPrice() {
+        if (this.getType() == ShopUnitType.CATEGORY) {
+            return calculatePriceForCategory();
+        }
         return price;
     }
 
-    public void setPrice(Long price) {
+    public Integer calculatePriceForCategory() {
+        Queue<ShopUnit> shopUnitsQueue = new LinkedList<>();
+        shopUnitsQueue.add(this);
+        int averagePrice = 0;
+        int countOfOffers = 0;
+        while (!shopUnitsQueue.isEmpty()) {
+            ShopUnit unit = shopUnitsQueue.poll();
+            shopUnitsQueue.addAll(unit.children);
+            if (unit.getType() == ShopUnitType.OFFER) {
+                countOfOffers++;
+                averagePrice += unit.getPrice();
+            }
+        }
+        if (countOfOffers == 0) {
+            return null;
+        }
+        return averagePrice / countOfOffers;
+    }
+
+    public void setPrice(Integer price) {
         this.price = price;
     }
 
-    public List<ShopUnit> getChildren() {
+    public Set<ShopUnit> getChildren() {
+        if (this.getType() == ShopUnitType.OFFER && this.children.isEmpty()) {
+            return null;
+        }
         return children;
     }
 
-    public void setChildren(List<ShopUnit> children) {
+    public void setChildren(Set<ShopUnit> children) {
         this.children = children;
+    }
+
+    public UUID getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(UUID parentId) {
+        this.parentId = parentId;
     }
 
     @Override
@@ -117,8 +169,8 @@ public class ShopUnit {
                 ", name='" + name +
                 ", type=" + type +
                 ", date=" + date +
-                ", parent=" + parent +
                 ", price=" + price +
                 '}';
     }
+
 }

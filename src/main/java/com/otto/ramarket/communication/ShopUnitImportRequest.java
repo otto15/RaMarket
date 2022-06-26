@@ -3,19 +3,19 @@ package com.otto.ramarket.communication;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class ShopUnitImportRequest {
 
     @NotNull
-    private final ZonedDateTime updateDate;
+    private final Instant updateDate;
 
     @NotNull
     @Valid
     private final List<ShopUnitImport> items;
 
-    public ShopUnitImportRequest(List<ShopUnitImport> items, ZonedDateTime updateDate) {
+    public ShopUnitImportRequest(List<ShopUnitImport> items, Instant updateDate) {
         this.items = items;
         this.updateDate = updateDate;
     }
@@ -24,7 +24,7 @@ public class ShopUnitImportRequest {
         return items;
     }
 
-    public ZonedDateTime getUpdateDate() {
+    public Instant getUpdateDate() {
         return updateDate;
     }
 

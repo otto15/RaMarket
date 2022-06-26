@@ -16,7 +16,7 @@ public class ShopUnitGlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Error> handleException(Exception exception) {
         Error error = new Error(HttpStatus.BAD_REQUEST.value(), DEFAULT_ERROR_MESSAGE);
-
+        exception.printStackTrace();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
