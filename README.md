@@ -26,7 +26,7 @@ docker-compose up --build
 
 ### Without docker:
 
-Be sure to create database for the service and change [application.properties](https://github.com/otto15/RaMarket/blob/main/src/main/resources/application.properties) file.
+Be sure to create database for the service and change [application.properties](https://github.com/otto15/RaMarket/blob/main/src/main/resources/application.properties) file (put your username, password, database name instead of bold parts of the code below).
 
 <pre>
 spring.datasource.url=jdbc:postgresql://localhost:5432/<b>YOUR_DATABASE_NAME</b>?useSSL=false&amp&serverTimezone=UTC
