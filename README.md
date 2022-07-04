@@ -44,8 +44,9 @@ spring.datasource.username=<b><i>USERNAME</i></b>
 spring.datasource.password=<b><i>PASSWORD</i></b>
 </pre>
 
+Ready. Set. Go.
+
 ```bash
-mvn clean install
 mvn spring-boot:run
 ```
 
